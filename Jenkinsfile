@@ -10,34 +10,42 @@ pipeline {
                 }
             }
         }
+        
         stage('Build Frontend') {
             steps {
                 dir('frontend') {
                     sh 'npm install'
+                    sh 'npm run build' // Build the frontend
                 }
             }
         }
-        // stage('Deploy') {
-        //     steps {
-        //         dir('frontend') {
-        //             sh 'npm run build'
-        //         }
-        //         dir('backend') {
-        //             sh 'source venv/bin/activate && python app.py &'
-        //         }
-        //     }
-        // }
+        
         stage('Deploy') {
             steps {
-                dir('frontend') {
-                    sh 'npm start &'
-                }
-                dir('backend') {
-                    sh 'source venv/bin/activate && python app.py &'
-                }
-                sleep 10 // Wait for services to start
+                script {
+                    def backendProcess // To store the backend process
+
+                    dir('backend') {
+                        sh 'venv/bin/python app.py &' // Start backend in the background using virtual environment
+                        backendProcess = lastBackgroundProcess() // Store the background process reference
+                    }
+                    
+                    dir('frontend') {
+                        sh 'npm start' // Start frontend in the background
+                    }
+
+                    sleep 10 // Wait for services to start
                     checkBackendAlive(backendProcess) // Check if backend is alive
+                }
             }
         }
     }
+}
+
+def lastBackgroundProcess() {
+    return sh(script: 'echo $!', returnStdout: true).trim()
+}
+
+def checkBackendAlive(processId) {
+    sh "ps -p $processId"
 }
