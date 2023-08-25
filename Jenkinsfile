@@ -10,52 +10,35 @@ pipeline {
                 }
             }
         }
-        
         stage('Build Frontend') {
             steps {
                 dir('frontend') {
                     sh 'npm install'
-                    sh 'npm run build' // Build the frontend
                 }
             }
         }
-        
         stage('Deploy') {
             steps {
-                script {
-                    def backendProcess // To store the backend process
-
-                    dir('backend') {
-                        backendProcess = startBackend() // Start backend and capture process reference
-                    }
-                    
-                    dir('frontend') {
-                        startFrontend() // Start frontend
-                    }
-
-                    sleep 10 // Wait for services to start
-                    checkBackendAlive(backendProcess) // Check if backend is alive
+                dir('frontend') {
+                    sh 'npm run build'
+                }
+                dir('backend') {
+                    sh 'source venv/bin/activate && python app.py &'
                 }
             }
         }
-    }
-}
-
-def startBackend() {
-    return build(job: 'backend-start', wait: false) // Start backend job in the background
-}
-
-def startFrontend() {
-    return build(job: 'frontend-start', wait: false) // Start frontend job in the background
-}
-
-def checkBackendAlive(build) {
-    echo "Waiting for backend to start..."
-    build.log.eachLine { line ->
-        if (line.contains("Backend started")) {
-            echo "Backend started successfully."
-            return
+        stage('Deploy') {
+            steps {
+                dir('backend') {
+                    sh '. venv/bin/activate && python app.py &'
+                }
+                dir('frontend/build') {
+                    sh 'npm install -g serve'
+                    sh 'serve -s . -p 3000 &'
+                }
+                // Add a delay to allow both servers to start before proceeding
+                sleep time: 30, unit: 'SECONDS'
+            }
         }
     }
-    error('Backend process failed to start.')
 }
