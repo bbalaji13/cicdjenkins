@@ -26,12 +26,11 @@ pipeline {
                     def backendProcess // To store the backend process
 
                     dir('backend') {
-                        sh 'venv/bin/python app.py &' // Start backend in the background using virtual environment
-                        backendProcess = lastBackgroundProcess() // Store the background process reference
+                        backendProcess = startBackend() // Start backend and capture process reference
                     }
                     
                     dir('frontend') {
-                        sh 'npm start' // Start frontend in the background
+                        startFrontend() // Start frontend
                     }
 
                     sleep 10 // Wait for services to start
@@ -42,10 +41,16 @@ pipeline {
     }
 }
 
-def lastBackgroundProcess() {
-    return sh(script: 'echo $!', returnStdout: true).trim()
+def startBackend() {
+    return bat(script: 'venv\\Scripts\\python app.py', returnStatus: true) // Adjust the path accordingly for Windows
 }
 
-def checkBackendAlive(processId) {
-    sh "ps -p $processId"
+def startFrontend() {
+    bat(script: 'npm start', returnStatus: true)
+}
+
+def checkBackendAlive(exitCode) {
+    if (exitCode != 0) {
+        error('Backend process failed to start.')
+    }
 }
