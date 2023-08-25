@@ -36,6 +36,7 @@ pipeline {
             steps {
                 dir('backend') {
                     // Start the backend application using the virtual environment
+                    sh 'pip install flask'
                     sh 'python3 app.py'
                 }
             }
