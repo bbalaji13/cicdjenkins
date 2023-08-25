@@ -42,17 +42,20 @@ pipeline {
 }
 
 def startBackend() {
-    def cmd = 'venv/bin/python app.py &'
-    return sh(script: cmd, returnStatus: true) // Start backend in the background using virtual environment
+    return build(job: 'backend-start', wait: false) // Start backend job in the background
 }
 
 def startFrontend() {
-    def cmd = 'npm start &'
-    sh script: cmd, returnStatus: true // Start frontend in the background
+    return build(job: 'frontend-start', wait: false) // Start frontend job in the background
 }
 
-def checkBackendAlive(exitCode) {
-    if (exitCode != 0) {
-        error('Backend process failed to start.')
+def checkBackendAlive(build) {
+    echo "Waiting for backend to start..."
+    build.log.eachLine { line ->
+        if (line.contains("Backend started")) {
+            echo "Backend started successfully."
+            return
+        }
     }
+    error('Backend process failed to start.')
 }
