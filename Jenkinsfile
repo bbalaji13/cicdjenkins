@@ -37,7 +37,8 @@ pipeline {
                 dir('backend') {
                     // Start the backend application using the virtual environment
                     sh 'pip install flask'
-                    sh 'pm2 restart --interpreter=python3 app.py'
+                    sh 'pm2 stop app.py --interpreter=python3'
+                    sh 'pm2 start app.py --interpreter=python3'
                 }
             }
         }
