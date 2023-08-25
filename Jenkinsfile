@@ -36,7 +36,7 @@ pipeline {
             steps {
                 dir('backend') {
                     // Start the backend application using the virtual environment
-                    sh '. venv/bin/activate && python app.py &'
+                    sh 'python3 app.py &'
                 }
             }
         }
