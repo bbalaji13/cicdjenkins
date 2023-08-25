@@ -30,7 +30,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 dir('frontend') {
-                    sh '(npm start &)'
+                    sh 'npm start'
                 }
                 dir('backend') {
                     sh 'source venv/bin/activate && python app.py &'
