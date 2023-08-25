@@ -42,11 +42,13 @@ pipeline {
 }
 
 def startBackend() {
-    return bat(script: 'venv\\Scripts\\python app.py', returnStatus: true) // Adjust the path accordingly for Windows
+    def cmd = 'venv/bin/python app.py &'
+    return sh(script: cmd, returnStatus: true) // Start backend in the background using virtual environment
 }
 
 def startFrontend() {
-    bat(script: 'npm start', returnStatus: true)
+    def cmd = 'npm start &'
+    sh script: cmd, returnStatus: true // Start frontend in the background
 }
 
 def checkBackendAlive(exitCode) {
