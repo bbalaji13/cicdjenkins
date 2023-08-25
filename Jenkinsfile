@@ -30,12 +30,13 @@ pipeline {
         stage('Deploy') {
             steps {
                 dir('frontend') {
-                    sh 'npm start '
-                    sh 'sleep 10'
+                    sh 'npm start &'
                 }
                 dir('backend') {
                     sh 'source venv/bin/activate && python app.py &'
                 }
+                sleep 10 // Wait for services to start
+                    checkBackendAlive(backendProcess) // Check if backend is alive
             }
         }
     }
